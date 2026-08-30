@@ -1,0 +1,16 @@
+{
+  "uuid": "qforge@goku.github.com",
+  "name": "QForge",
+  "description": "Customize GNOME Quick Settings: hide default tiles, add custom command shortcuts, and edit layout on the fly.",
+  "shell-version": [
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50"
+  ],
+  "url": "https://github.com/adhithyants/qforge",
+  "settings-schema": "org.gnome.shell.extensions.qforge",
+  "version": 1
+}
