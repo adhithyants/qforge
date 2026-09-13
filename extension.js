@@ -428,7 +428,7 @@ class QForgeEditHeaderButton extends QuickSettings.QuickSettingsItem {
             try {
                 this._extension.openPreferences();
             } catch (e) {
-                console.error('[QForge] Failed to open preferences:', e);
+                logError(e, '[QForge] Failed to open preferences');
             }
         });
     }
@@ -457,7 +457,7 @@ class QForgeCustomToggle extends QuickSettings.QuickToggle {
                         Gio.SubprocessFlags.NONE
                     );
                 } catch (e) {
-                    console.error(`[QForge] Failed to run command '${this._command}':`, e);
+                    logError(e, `[QForge] Failed to run command '${this._command}'`);
                 }
             }
         });
@@ -482,7 +482,7 @@ export default class QForgeExtension extends Extension {
                 systemItem.child.insert_child_at_index(this._editButton, 3);
             }
         } catch (e) {
-            console.error('[QForge] Could not add edit button to system header:', e);
+            logError(e, '[QForge] Could not add edit button to system header');
         }
 
         // 2. Load & apply custom launchers and hidden defaults
@@ -539,7 +539,7 @@ export default class QForgeExtension extends Extension {
         const quickSettings = Main.panel.statusArea.quickSettings;
         const menuBox = quickSettings?.menu?.box || quickSettings?.menu?._box;
         if (!quickSettings || !quickSettings.menu || !menuBox) {
-            console.error('[QForge] Cannot enter Edit Mode: Quick Settings menu container missing');
+            logError(new Error('Quick Settings menu container missing'), '[QForge] Cannot enter Edit Mode');
             return;
         }
 
@@ -555,7 +555,7 @@ export default class QForgeExtension extends Extension {
         try {
             menuBox.add_child(this._editOverlay);
         } catch (e) {
-            console.error('[QForge] Failed to insert edit overlay:', e);
+            logError(e, '[QForge] Failed to insert edit overlay');
             if (grid && this._originalGridVisible !== null && 'visible' in grid) {
                 grid.visible = this._originalGridVisible;
             }
@@ -603,7 +603,7 @@ export default class QForgeExtension extends Extension {
                 }
                 this._editOverlay.destroy();
             } catch (e) {
-                console.error('[QForge] Error destroying edit overlay:', e);
+                logError(e, '[QForge] Error destroying edit overlay');
             }
             this._editOverlay = null;
         }
@@ -796,7 +796,7 @@ export default class QForgeExtension extends Extension {
                                 }
                             });
                         } catch (e) {
-                            console.error('[QForge] Failed to connect notify::visible signal:', e);
+                            logError(e, '[QForge] Failed to connect notify::visible signal');
                         }
 
                         this._hiddenElementsMap.set(item, { signalId, key });
@@ -858,7 +858,7 @@ export default class QForgeExtension extends Extension {
                 };
             });
         } catch (e) {
-            console.error('[QForge] Failed to parse custom-launchers JSON:', e);
+            logError(e, '[QForge] Failed to parse custom-launchers JSON');
         }
 
         const hiddenList = this._settings ? (this._settings.get_strv('hidden-defaults') || []) : [];
@@ -875,7 +875,7 @@ export default class QForgeExtension extends Extension {
                     }
                 }
             } catch (e) {
-                console.error('[QForge] Failed to add custom toggle:', e);
+                logError(e, '[QForge] Failed to add custom toggle');
             }
         });
 

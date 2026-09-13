@@ -642,16 +642,29 @@ export default class QForgePreferences extends ExtensionPreferences {
                 });
                 expanderRow.add_row(iconRow);
 
-                // Quick Icon Suggestions Row
-                const suggestionsRow = new Adw.ActionRow({
-                    title: _('Quick Icon Suggestions'),
-                    subtitle: _('Click any icon below to select it'),
+                // Quick Icon Suggestions Box
+                const iconSuggestionsContainer = new Gtk.Box({
+                    orientation: Gtk.Orientation.VERTICAL,
+                    spacing: 6,
+                    margin_top: 8,
+                    margin_bottom: 8,
+                    margin_start: 12,
+                    margin_end: 12,
                 });
+                const iconSuggestionsLabel = new Gtk.Label({
+                    label: _('Quick Icon Suggestions'),
+                    xalign: 0,
+                    cssClasses: ['dim-label', 'caption-heading'],
+                });
+                iconSuggestionsContainer.append(iconSuggestionsLabel);
 
-                const suggestionsBox = new Gtk.Box({
-                    orientation: Gtk.Orientation.HORIZONTAL,
-                    spacing: 4,
-                    valign: Gtk.Align.CENTER,
+                const iconFlow = new Gtk.FlowBox({
+                    selection_mode: Gtk.SelectionMode.NONE,
+                    max_children_per_line: 12,
+                    min_children_per_line: 4,
+                    row_spacing: 6,
+                    column_spacing: 6,
+                    halign: Gtk.Align.FILL,
                 });
 
                 const presetIcons = [
@@ -665,12 +678,14 @@ export default class QForgePreferences extends ExtensionPreferences {
                     { icon: 'utilities-system-monitor-symbolic', name: _('Monitor') },
                     { icon: 'application-x-executable-symbolic', name: _('App') },
                     { icon: 'system-lock-screen-symbolic', name: _('Lock') },
+                    { icon: 'audio-volume-high-symbolic', name: _('Sound') },
+                    { icon: 'bluetooth-active-symbolic', name: _('Bluetooth') },
                 ];
 
                 presetIcons.forEach(preset => {
                     const btn = new Gtk.Button({
                         tooltipText: preset.name,
-                        cssClasses: ['flat']
+                        cssClasses: ['flat', 'card']
                     });
                     const img = Gtk.Image.new_from_icon_name(preset.icon);
                     img.set_pixel_size(18);
@@ -688,11 +703,10 @@ export default class QForgePreferences extends ExtensionPreferences {
                             saveLaunchers(list);
                         }
                     });
-                    suggestionsBox.append(btn);
+                    iconFlow.append(btn);
                 });
-
-                suggestionsRow.add_suffix(suggestionsBox);
-                expanderRow.add_row(suggestionsRow);
+                iconSuggestionsContainer.append(iconFlow);
+                expanderRow.add_row(iconSuggestionsContainer);
 
                 const commandRow = new Adw.EntryRow({
                     title: _('Command'),
@@ -708,16 +722,29 @@ export default class QForgePreferences extends ExtensionPreferences {
                 });
                 expanderRow.add_row(commandRow);
 
-                // Quick Command Suggestions Row
-                const cmdSuggestionsRow = new Adw.ActionRow({
-                    title: _('Quick Command Suggestions'),
-                    subtitle: _('Click a preset to insert command, then customize as needed'),
+                // Quick Command Suggestions Box
+                const cmdSuggestionsContainer = new Gtk.Box({
+                    orientation: Gtk.Orientation.VERTICAL,
+                    spacing: 6,
+                    margin_top: 8,
+                    margin_bottom: 8,
+                    margin_start: 12,
+                    margin_end: 12,
                 });
+                const cmdSuggestionsLabel = new Gtk.Label({
+                    label: _('Quick Command Suggestions (Click preset to insert)'),
+                    xalign: 0,
+                    cssClasses: ['dim-label', 'caption-heading'],
+                });
+                cmdSuggestionsContainer.append(cmdSuggestionsLabel);
 
-                const cmdSuggestionsBox = new Gtk.Box({
-                    orientation: Gtk.Orientation.HORIZONTAL,
-                    spacing: 4,
-                    valign: Gtk.Align.CENTER,
+                const cmdFlow = new Gtk.FlowBox({
+                    selection_mode: Gtk.SelectionMode.NONE,
+                    max_children_per_line: 6,
+                    min_children_per_line: 2,
+                    row_spacing: 6,
+                    column_spacing: 6,
+                    halign: Gtk.Align.FILL,
                 });
 
                 const presetCommands = [
@@ -728,13 +755,16 @@ export default class QForgePreferences extends ExtensionPreferences {
                     { label: _('Settings'), cmd: 'gnome-control-center' },
                     { label: _('Screenshot'), cmd: 'gnome-screenshot -i' },
                     { label: _('Calculator'), cmd: 'gnome-calculator' },
+                    { label: _('Lock Screen'), cmd: 'loginctl lock-session' },
+                    { label: _('Sound Settings'), cmd: 'gnome-control-center sound' },
+                    { label: _('Bluetooth'), cmd: 'gnome-control-center bluetooth' },
                 ];
 
                 presetCommands.forEach(preset => {
                     const btn = new Gtk.Button({
                         label: preset.label,
                         tooltipText: preset.cmd,
-                        cssClasses: ['flat']
+                        cssClasses: ['flat', 'card']
                     });
 
                     btn.connect('clicked', () => {
@@ -746,11 +776,51 @@ export default class QForgePreferences extends ExtensionPreferences {
                             saveLaunchers(list);
                         }
                     });
-                    cmdSuggestionsBox.append(btn);
+                    cmdFlow.append(btn);
+                });
+                cmdSuggestionsContainer.append(cmdFlow);
+                expanderRow.add_row(cmdSuggestionsContainer);
+
+                // Action Buttons Suffix Box (Up, Down, Delete)
+                const actionBox = new Gtk.Box({
+                    orientation: Gtk.Orientation.HORIZONTAL,
+                    spacing: 4,
+                    valign: Gtk.Align.CENTER,
                 });
 
-                cmdSuggestionsRow.add_suffix(cmdSuggestionsBox);
-                expanderRow.add_row(cmdSuggestionsRow);
+                if (index > 0) {
+                    const upBtn = new Gtk.Button({
+                        iconName: 'go-up-symbolic',
+                        valign: Gtk.Align.CENTER,
+                        cssClasses: ['flat'],
+                        tooltipText: _('Move Up'),
+                    });
+                    upBtn.connect('clicked', () => {
+                        const list = getCustomLaunchers();
+                        const itemToMove = list.splice(index, 1)[0];
+                        list.splice(index - 1, 0, itemToMove);
+                        saveLaunchers(list);
+                        renderLaunchers();
+                    });
+                    actionBox.append(upBtn);
+                }
+
+                if (index < launchers.length - 1) {
+                    const downBtn = new Gtk.Button({
+                        iconName: 'go-down-symbolic',
+                        valign: Gtk.Align.CENTER,
+                        cssClasses: ['flat'],
+                        tooltipText: _('Move Down'),
+                    });
+                    downBtn.connect('clicked', () => {
+                        const list = getCustomLaunchers();
+                        const itemToMove = list.splice(index, 1)[0];
+                        list.splice(index + 1, 0, itemToMove);
+                        saveLaunchers(list);
+                        renderLaunchers();
+                    });
+                    actionBox.append(downBtn);
+                }
 
                 const delBtn = new Gtk.Button({
                     iconName: 'user-trash-symbolic',
@@ -766,7 +836,8 @@ export default class QForgePreferences extends ExtensionPreferences {
                     renderLaunchers();
                 });
 
-                expanderRow.add_suffix(delBtn);
+                actionBox.append(delBtn);
+                expanderRow.add_suffix(actionBox);
 
                 launchersGroup.add(expanderRow);
                 launcherRows.push(expanderRow);
@@ -800,6 +871,61 @@ export default class QForgePreferences extends ExtensionPreferences {
         launchersGroup.add(addBtnRow);
 
         mainPage.add(launchersGroup);
+
+        // 4. Backup & Restore Group
+        const backupGroup = new Adw.PreferencesGroup({
+            title: _('Backup & Restore'),
+            description: _('Export or import your custom launcher shortcuts configuration.'),
+        });
+
+        const exportRow = new Adw.ActionRow({
+            title: _('Export Configuration'),
+            subtitle: _('Copy custom launchers JSON config to clipboard'),
+        });
+        const exportBtn = new Gtk.Button({
+            label: _('Export'),
+            valign: Gtk.Align.CENTER,
+        });
+        exportBtn.connect('clicked', () => {
+            const rawJson = settings.get_string('custom-launchers') || '[]';
+            const clipboard = Gdk.Display.get_default().get_clipboard();
+            clipboard.set(rawJson);
+            window.add_toast(new Adw.Toast({ title: _('Configuration copied to clipboard') }));
+        });
+        exportRow.add_suffix(exportBtn);
+        backupGroup.add(exportRow);
+
+        const importRow = new Adw.EntryRow({
+            title: _('Import Configuration (Paste JSON)'),
+            show_apply_button: false,
+        });
+        const importBtn = new Gtk.Button({
+            label: _('Import'),
+            valign: Gtk.Align.CENTER,
+            cssClasses: ['suggested-action'],
+        });
+        importBtn.connect('clicked', () => {
+            const text = importRow.text ? importRow.text.trim() : '';
+            if (text) {
+                try {
+                    const parsed = JSON.parse(text);
+                    if (!Array.isArray(parsed)) {
+                        throw new Error('Config must be a JSON array');
+                    }
+                    settings.set_string('custom-launchers', JSON.stringify(parsed));
+                    renderLaunchers();
+                    renderPreview();
+                    importRow.text = '';
+                    window.add_toast(new Adw.Toast({ title: _('Configuration imported successfully') }));
+                } catch (e) {
+                    window.add_toast(new Adw.Toast({ title: _('Invalid JSON array format') }));
+                }
+            }
+        });
+        importRow.add_suffix(importBtn);
+        backupGroup.add(importRow);
+
+        mainPage.add(backupGroup);
         window.add(mainPage);
     }
 }
