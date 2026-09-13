@@ -17,39 +17,50 @@ class QForgeEditOverlay extends St.BoxLayout {
             vertical: true,
             x_expand: true,
             y_expand: true,
-            style: 'padding: 16px; spacing: 12px; background-color: #242424; border-radius: 26px;'
+            style: 'padding: 14px 16px; spacing: 6px; background-color: #242424; border-radius: 22px;'
         });
 
         this._extension = extension;
+        this.render();
+    }
+
+    render() {
+        this.destroy_all_children();
+
+        const settings = this._extension._settings;
+        const hiddenList = settings ? (settings.get_strv('hidden-defaults') || []) : [];
+        let launchers = [];
+        if (settings) {
+            try {
+                launchers = JSON.parse(settings.get_string('custom-launchers') || '[]');
+            } catch (e) {
+                launchers = [];
+            }
+        }
 
         // 1. Top Action Row
         const topRow = new St.BoxLayout({
             vertical: false,
-            style: 'margin-bottom: 8px;'
+            style: 'margin-bottom: 6px;'
         });
 
-        // Battery Pill
         const batteryPill = new St.BoxLayout({
             vertical: false,
-            style: 'background-color: rgba(255, 255, 255, 0.12); border-radius: 16px; padding: 6px 12px; spacing: 6px;'
+            style: 'background-color: rgba(255, 255, 255, 0.12); border-radius: 12px; padding: 4px 10px; spacing: 6px;'
         });
-        const battIcon = new St.Icon({
+        batteryPill.add_child(new St.Icon({
             icon_name: 'battery-level-60-symbolic',
-            icon_size: 16,
+            icon_size: 14,
             style: 'color: #ffffff;'
-        });
-        const battLabel = new St.Label({
+        }));
+        batteryPill.add_child(new St.Label({
             text: '64%',
-            style: 'color: #ffffff; font-weight: bold; font-size: 13px;'
-        });
-        batteryPill.add_child(battIcon);
-        batteryPill.add_child(battLabel);
+            style: 'color: #ffffff; font-weight: bold; font-size: 11px;'
+        }));
         topRow.add_child(batteryPill);
 
-        const spacer = new St.Widget({ x_expand: true });
-        topRow.add_child(spacer);
+        topRow.add_child(new St.Widget({ x_expand: true }));
 
-        // Action Buttons
         const actionIcons = [
             'shortcut-custom-symbolic',
             'document-edit-symbolic',
@@ -59,15 +70,14 @@ class QForgeEditOverlay extends St.BoxLayout {
         ];
         actionIcons.forEach(iconName => {
             const btn = new St.Button({
-                style: 'background-color: rgba(255, 255, 255, 0.12); border-radius: 9999px; min-width: 36px; min-height: 36px; margin-left: 6px;',
+                style: 'background-color: rgba(255, 255, 255, 0.12); border-radius: 9999px; min-width: 28px; min-height: 28px; margin-left: 4px;',
                 can_focus: true
             });
-            const icon = new St.Icon({
+            btn.set_child(new St.Icon({
                 icon_name: iconName,
-                icon_size: 16,
+                icon_size: 14,
                 style: 'color: #ffffff;'
-            });
-            btn.set_child(icon);
+            }));
             topRow.add_child(btn);
         });
         this.add_child(topRow);
@@ -75,76 +85,138 @@ class QForgeEditOverlay extends St.BoxLayout {
         // 2. Volume Slider Row
         const volRow = new St.BoxLayout({
             vertical: false,
-            style: 'margin-bottom: 8px; spacing: 8px;'
+            style: 'margin-bottom: 6px; spacing: 6px;'
         });
-        const volIcon = new St.Icon({
+        volRow.add_child(new St.Icon({
             icon_name: 'audio-volume-high-symbolic',
-            icon_size: 16,
+            icon_size: 14,
             style: 'color: rgba(255, 255, 255, 0.9);'
-        });
-        const volSlider = new St.Slider({
+        }));
+        volRow.add_child(new St.Slider({
             value: 0.75,
             x_expand: true,
-            style: 'min-height: 24px;'
-        });
+            style: 'min-height: 20px;'
+        }));
         const volArrow = new St.Button({
-            style: 'background-color: rgba(255, 255, 255, 0.12); border-radius: 9999px; min-width: 28px; min-height: 28px; margin-left: 4px;',
+            style: 'background-color: rgba(255, 255, 255, 0.12); border-radius: 9999px; min-width: 22px; min-height: 22px; margin-left: 4px;',
             can_focus: true
         });
         volArrow.set_child(new St.Icon({
             icon_name: 'go-next-symbolic',
-            icon_size: 14,
+            icon_size: 12,
             style: 'color: #ffffff;'
         }));
-        volRow.add_child(volIcon);
-        volRow.add_child(volSlider);
         volRow.add_child(volArrow);
         this.add_child(volRow);
 
         // 3. Brightness Slider Row
         const brightRow = new St.BoxLayout({
             vertical: false,
-            style: 'margin-bottom: 12px; spacing: 8px;'
+            style: 'margin-bottom: 8px; spacing: 6px;'
         });
-        const brightIcon = new St.Icon({
+        brightRow.add_child(new St.Icon({
             icon_name: 'display-brightness-symbolic',
-            icon_size: 16,
+            icon_size: 14,
             style: 'color: rgba(255, 255, 255, 0.9);'
-        });
-        const brightSlider = new St.Slider({
+        }));
+        brightRow.add_child(new St.Slider({
             value: 0.8,
             x_expand: true,
-            style: 'min-height: 24px;'
-        });
-        brightRow.add_child(brightIcon);
-        brightRow.add_child(brightSlider);
+            style: 'min-height: 20px;'
+        }));
         this.add_child(brightRow);
 
-        // 4. Quick Settings Two-Column Tiles Grid (using St.BoxLayout rows)
-        const gridBox = new St.BoxLayout({
-            vertical: true,
-            style: 'spacing: 10px;'
+        // 4. DISPLAYED TILES
+        const defaultHideableItems = [
+            { id: 'nightLight', title: 'Night Light', icon: 'night-light-symbolic' },
+            { id: 'keyboard', title: 'Keyboard', icon: 'keyboard-brightness-symbolic' },
+            { id: 'darkMode', title: 'Dark Style', icon: 'dark-mode-symbolic' },
+            { id: 'dnd', title: 'Do Not Disturb', icon: 'notifications-disabled-symbolic' },
+            { id: 'backgroundApps', title: 'Background Apps', icon: 'background-app-symbolic' },
+        ];
+
+        const displayedTiles = [
+            { title: 'Wi-Fi', subtitle: 'BSNLtelnet(99...)', icon: 'network-wireless-signal-excellent-symbolic', active: true, arrow: true },
+            { title: 'Tether', subtitle: 'vivo Y56 5G', icon: 'network-cellular-disabled-symbolic', active: false, arrow: true },
+            { title: 'Bluetooth', subtitle: '', icon: 'bluetooth-active-symbolic', active: true, arrow: true },
+            { title: 'Airplane Mode', subtitle: '', icon: 'airplane-mode-symbolic', active: false, arrow: false },
+        ];
+
+        defaultHideableItems.forEach(item => {
+            if (!hiddenList.includes(item.id)) {
+                displayedTiles.push({
+                    id: item.id,
+                    title: item.title,
+                    subtitle: '',
+                    icon: item.icon,
+                    active: false,
+                    arrow: false,
+                    isHideable: true
+                });
+            }
         });
 
-        // Helper to construct a single tile
-        const createTile = (title, subtitle, iconName, isActive, hasArrow) => {
-            const tileBtn = new St.Button({
-                x_expand: true,
-                style: isActive
-                    ? 'background-color: #3584e4; border-radius: 22px; padding: 10px 14px; min-height: 48px;'
-                    : 'background-color: rgba(255, 255, 255, 0.12); border-radius: 22px; padding: 10px 14px; min-height: 48px;'
-            });
+        const hiddenLauncherItems = [];
+
+        launchers.forEach((item, index) => {
+            const slug = (item.title || 'launcher').toLowerCase().replace(/[^a-z0-9]/g, '_');
+            const launcherId = item.id || `custom_${slug}_${index}`;
+            if (!hiddenList.includes(launcherId)) {
+                displayedTiles.push({
+                    id: launcherId,
+                    title: item.title || 'Custom Launcher',
+                    subtitle: '',
+                    icon: item.iconName || 'utilities-terminal-symbolic',
+                    active: false,
+                    arrow: false,
+                    isHideable: true
+                });
+            } else {
+                hiddenLauncherItems.push({
+                    id: launcherId,
+                    title: item.title || 'Custom Launcher',
+                    icon: item.iconName || 'utilities-terminal-symbolic'
+                });
+            }
+        });
+
+        // Add "+ Add Button" tile to DISPLAYED section
+        displayedTiles.push({
+            isAddBtn: true,
+            title: '+ Add Button',
+            subtitle: '',
+            icon: 'list-add-symbolic',
+            active: false,
+            arrow: false
+        });
+
+        const displayedBox = new St.BoxLayout({
+            vertical: true,
+            style: 'spacing: 6px;'
+        });
+
+        const createTileWidget = (tile, isHiddenSection = false) => {
+            const isInteractive = tile.isHideable || tile.isAddBtn;
+
+            let bgStyle = 'background-color: rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 4px 10px; min-height: 34px;';
+            if (tile.active) {
+                bgStyle = 'background-color: #3584e4; border-radius: 14px; padding: 4px 10px; min-height: 34px;';
+            } else if (isHiddenSection) {
+                bgStyle = 'background-color: rgba(255, 255, 255, 0.05); border: 1px dashed rgba(255, 255, 255, 0.2); border-radius: 14px; padding: 4px 10px; min-height: 34px;';
+            } else if (tile.isAddBtn) {
+                bgStyle = 'background-color: rgba(255, 255, 255, 0.08); border: 1.5px dashed rgba(255, 255, 255, 0.25); border-radius: 14px; padding: 4px 10px; min-height: 34px;';
+            }
 
             const tileInner = new St.BoxLayout({
                 vertical: false,
                 x_expand: true,
-                style: 'spacing: 8px;'
+                style: 'spacing: 6px;'
             });
 
             const icon = new St.Icon({
-                icon_name: iconName,
-                icon_size: 18,
-                style: 'color: #ffffff;'
+                icon_name: tile.icon,
+                icon_size: 15,
+                style: isHiddenSection ? 'color: rgba(255, 255, 255, 0.6);' : 'color: #ffffff;'
             });
             tileInner.add_child(icon);
 
@@ -153,59 +225,168 @@ class QForgeEditOverlay extends St.BoxLayout {
                 x_expand: true
             });
             const titleLabel = new St.Label({
-                text: title,
-                style: 'color: #ffffff; font-weight: bold; font-size: 13px;'
+                text: tile.title,
+                style: isHiddenSection ? 'color: rgba(255, 255, 255, 0.6); font-weight: bold; font-size: 11px;' : 'color: #ffffff; font-weight: bold; font-size: 11px;'
             });
             textVBox.add_child(titleLabel);
 
-            if (subtitle) {
+            if (tile.subtitle) {
                 const subLabel = new St.Label({
-                    text: subtitle,
-                    style: 'color: rgba(255, 255, 255, 0.8); font-size: 11px;'
+                    text: tile.subtitle,
+                    style: 'color: rgba(255, 255, 255, 0.75); font-size: 9.5px;'
                 });
                 textVBox.add_child(subLabel);
             }
             tileInner.add_child(textVBox);
 
-            if (hasArrow) {
+            if (tile.arrow) {
+                const arrowBox = new St.BoxLayout({
+                    vertical: false,
+                    x_align: Clutter.ActorAlign.CENTER,
+                    y_align: Clutter.ActorAlign.CENTER,
+                    style: 'background-color: rgba(255, 255, 255, 0.18); border-radius: 9999px; min-width: 20px; min-height: 20px; margin-left: 4px;'
+                });
                 const arrowIcon = new St.Icon({
                     icon_name: 'go-next-symbolic',
-                    icon_size: 14,
-                    style: 'color: rgba(255, 255, 255, 0.7);'
+                    icon_size: 12,
+                    style: 'color: #ffffff;'
                 });
-                tileInner.add_child(arrowIcon);
+                arrowBox.add_child(arrowIcon);
+                tileInner.add_child(arrowBox);
             }
 
-            tileBtn.set_child(tileInner);
-            return tileBtn;
+            if (isInteractive) {
+                const tileBtn = new St.Button({
+                    x_expand: true,
+                    style: bgStyle,
+                    can_focus: true,
+                    reactive: true
+                });
+                tileBtn.set_child(tileInner);
+
+                if (tile.isHideable) {
+                    tileBtn.connect('clicked', () => {
+                        if (settings) {
+                            let current = settings.get_strv('hidden-defaults') || [];
+                            if (isHiddenSection) {
+                                current = current.filter(id => id !== tile.id);
+                            } else {
+                                if (!current.includes(tile.id)) current.push(tile.id);
+                            }
+                            settings.set_strv('hidden-defaults', current);
+                        }
+                    });
+                } else if (tile.isAddBtn) {
+                    tileBtn.connect('clicked', () => {
+                        if (settings) {
+                            let list = [];
+                            try {
+                                list = JSON.parse(settings.get_string('custom-launchers') || '[]');
+                            } catch (e) {}
+                            list.push({
+                                id: `custom_launcher_${Date.now()}_${list.length}`,
+                                title: 'New Button',
+                                iconName: 'utilities-terminal-symbolic',
+                                command: 'gnome-terminal'
+                            });
+                            settings.set_string('custom-launchers', JSON.stringify(list));
+                        }
+                    });
+                }
+                return tileBtn;
+            } else {
+                const staticTileContainer = new St.BoxLayout({
+                    x_expand: true,
+                    style: bgStyle,
+                    reactive: false,
+                    can_focus: false
+                });
+                staticTileContainer.add_child(tileInner);
+                return staticTileContainer;
+            }
         };
 
-        const defaultTiles = [
-            { title: 'Wi-Fi', subtitle: 'BSNLtelnet(99...)', icon: 'network-wireless-signal-excellent-symbolic', active: true, arrow: true },
-            { title: 'Tether', subtitle: 'vivo Y56 5G', icon: 'network-cellular-disabled-symbolic', active: false, arrow: true },
-            { title: 'Bluetooth', subtitle: '', icon: 'bluetooth-active-symbolic', active: true, arrow: true },
-            { title: 'Airplane Mode', subtitle: '', icon: 'airplane-mode-symbolic', active: false, arrow: false },
-            { title: 'new button', subtitle: '', icon: 'utilities-terminal-symbolic', active: false, arrow: false },
-            { title: 'New Launcher', subtitle: '', icon: 'utilities-terminal-symbolic', active: false, arrow: false },
-        ];
-
-        for (let i = 0; i < defaultTiles.length; i += 2) {
+        for (let i = 0; i < displayedTiles.length; i += 2) {
             const rowBox = new St.BoxLayout({
                 vertical: false,
-                style: 'spacing: 10px;'
+                style: 'spacing: 6px;'
             });
-            const tile1 = createTile(defaultTiles[i].title, defaultTiles[i].subtitle, defaultTiles[i].icon, defaultTiles[i].active, defaultTiles[i].arrow);
+            const tile1 = createTileWidget(displayedTiles[i], false);
             rowBox.add_child(tile1);
 
-            if (i + 1 < defaultTiles.length) {
-                const tile2 = createTile(defaultTiles[i + 1].title, defaultTiles[i + 1].subtitle, defaultTiles[i + 1].icon, defaultTiles[i + 1].active, defaultTiles[i + 1].arrow);
+            if (i + 1 < displayedTiles.length) {
+                const tile2 = createTileWidget(displayedTiles[i + 1], false);
                 rowBox.add_child(tile2);
+            } else {
+                const dummySpacer = new St.Widget({ x_expand: true });
+                rowBox.add_child(dummySpacer);
             }
-            gridBox.add_child(rowBox);
+            displayedBox.add_child(rowBox);
         }
-        this.add_child(gridBox);
+        this.add_child(displayedBox);
 
-        // Done Button Row
+        // 5. SEPARATOR
+        const separator = new St.Widget({
+            style: 'height: 1px; background-color: rgba(255, 255, 255, 0.15); margin-top: 10px; margin-bottom: 6px;',
+            x_expand: true
+        });
+        this.add_child(separator);
+
+        // 6. HIDDEN SECTION
+        const hiddenHeader = new St.Label({
+            text: 'HIDDEN',
+            style: 'color: rgba(255, 255, 255, 0.5); font-weight: bold; font-size: 10.5px; margin-bottom: 6px;'
+        });
+        this.add_child(hiddenHeader);
+
+        const hiddenTiles = [
+            ...defaultHideableItems.filter(item => hiddenList.includes(item.id)),
+            ...hiddenLauncherItems
+        ];
+
+        if (hiddenTiles.length > 0) {
+            const hiddenBox = new St.BoxLayout({
+                vertical: true,
+                style: 'spacing: 6px;'
+            });
+
+            for (let i = 0; i < hiddenTiles.length; i += 2) {
+                const rowBox = new St.BoxLayout({
+                    vertical: false,
+                    style: 'spacing: 6px;'
+                });
+                const tile1 = createTileWidget({
+                    id: hiddenTiles[i].id,
+                    title: hiddenTiles[i].title,
+                    icon: hiddenTiles[i].icon,
+                    isHideable: true
+                }, true);
+                rowBox.add_child(tile1);
+
+                if (i + 1 < hiddenTiles.length) {
+                    const tile2 = createTileWidget({
+                        id: hiddenTiles[i + 1].id,
+                        title: hiddenTiles[i + 1].title,
+                        icon: hiddenTiles[i + 1].icon,
+                        isHideable: true
+                    }, true);
+                    rowBox.add_child(tile2);
+                } else {
+                    const dummySpacer = new St.Widget({ x_expand: true });
+                    rowBox.add_child(dummySpacer);
+                }
+                hiddenBox.add_child(rowBox);
+            }
+            this.add_child(hiddenBox);
+        } else {
+            const emptyLabel = new St.Label({
+                text: 'No hidden tiles',
+                style: 'color: rgba(255, 255, 255, 0.4); font-size: 11px; font-style: italic; margin-bottom: 4px;'
+            });
+            this.add_child(emptyLabel);
+        }
+
+        // 7. Done Button Row
         const buttonBox = new St.BoxLayout({
             x_align: Clutter.ActorAlign.END,
             style: 'margin-top: 14px;'
@@ -265,6 +446,7 @@ class QForgeCustomToggle extends QuickSettings.QuickToggle {
             toggleMode: false,
         });
 
+        this._id = item.id || '';
         this._command = item.command || '';
 
         this.connect('clicked', () => {
@@ -597,34 +779,42 @@ export default class QForgeExtension extends Extension {
         const hiddenList = this._settings.get_strv('hidden-defaults') || [];
 
         const quickSettings = Main.panel.statusArea.quickSettings;
-        if (!quickSettings) return;
+        if (quickSettings) {
+            hiddenList.forEach(key => {
+                const items = this._findItems(key, quickSettings);
+                items.forEach(item => {
+                    if (item && item.visible !== undefined) {
+                        if (this._hiddenElementsMap.has(item)) return;
 
-        hiddenList.forEach(key => {
-            const items = this._findItems(key, quickSettings);
-            items.forEach(item => {
-                if (item && item.visible !== undefined) {
-                    // Prevent duplicate signal connection
-                    if (this._hiddenElementsMap.has(item)) return;
+                        item.visible = false;
 
-                    // Immediately hide item
-                    item.visible = false;
+                        let signalId = 0;
+                        try {
+                            signalId = item.connect('notify::visible', () => {
+                                if (item.visible) {
+                                    item.visible = false;
+                                }
+                            });
+                        } catch (e) {
+                            console.error('[QForge] Failed to connect notify::visible signal:', e);
+                        }
 
-                    // Connect notify::visible to enforce persistence against state updates
-                    let signalId = 0;
-                    try {
-                        signalId = item.connect('notify::visible', () => {
-                            if (item.visible) {
-                                item.visible = false;
-                            }
-                        });
-                    } catch (e) {
-                        console.error('[QForge] Failed to connect notify::visible signal:', e);
+                        this._hiddenElementsMap.set(item, { signalId, key });
                     }
-
-                    this._hiddenElementsMap.set(item, { signalId, key });
-                }
+                });
             });
+        }
+
+        // Also update visibility of custom launcher toggles
+        this._customToggles.forEach(toggle => {
+            if (toggle && toggle._id) {
+                toggle.visible = !hiddenList.includes(toggle._id);
+            }
         });
+
+        if (this._editOverlay && typeof this._editOverlay.render === 'function') {
+            this._editOverlay.render();
+        }
     }
 
     _restoreHiddenDefaults() {
@@ -646,6 +836,11 @@ export default class QForgeExtension extends Extension {
             }
         });
         this._hiddenElementsMap.clear();
+
+        // Restore custom launcher toggles visibility
+        this._customToggles.forEach(toggle => {
+            if (toggle) toggle.visible = true;
+        });
     }
 
     _loadCustomLaunchers() {
@@ -654,11 +849,19 @@ export default class QForgeExtension extends Extension {
 
         try {
             const rawJson = this._settings.get_string('custom-launchers');
-            launchers = JSON.parse(rawJson || '[]');
+            const list = JSON.parse(rawJson || '[]');
+            launchers = list.map((item, index) => {
+                const slug = (item.title || 'launcher').toLowerCase().replace(/[^a-z0-9]/g, '_');
+                return {
+                    ...item,
+                    id: item.id || `custom_${slug}_${index}`
+                };
+            });
         } catch (e) {
             console.error('[QForge] Failed to parse custom-launchers JSON:', e);
         }
 
+        const hiddenList = this._settings ? (this._settings.get_strv('hidden-defaults') || []) : [];
         const quickSettings = Main.panel.statusArea.quickSettings;
 
         launchers.forEach(item => {
@@ -667,11 +870,18 @@ export default class QForgeExtension extends Extension {
             try {
                 if (quickSettings && quickSettings.menu) {
                     quickSettings.menu.addItem(toggle, 1);
+                    if (hiddenList.includes(item.id)) {
+                        toggle.visible = false;
+                    }
                 }
             } catch (e) {
                 console.error('[QForge] Failed to add custom toggle:', e);
             }
         });
+
+        if (this._editOverlay && typeof this._editOverlay.render === 'function') {
+            this._editOverlay.render();
+        }
     }
 
     _clearCustomToggles() {

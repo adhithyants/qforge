@@ -7,7 +7,7 @@ export default class QForgePreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
         const settings = this.getSettings();
 
-        // Register custom CSS for compact GNOME Quick Settings preview and interactive tile cards
+        // Register custom CSS for compact GNOME Quick Settings preview and integrated edit mode
         const cssProvider = new Gtk.CssProvider();
         const css = `
             .qs-preview-wrapper {
@@ -16,140 +16,164 @@ export default class QForgePreferences extends ExtensionPreferences {
             .qs-preview-panel {
                 background-color: #242424;
                 border-radius: 22px;
-                padding: 14px;
-                width: 340px;
+                padding: 14px 16px;
+                width: 480px;
                 box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
             }
             .qs-top-row {
-                margin-bottom: 10px;
+                margin-bottom: 8px;
             }
             .qs-battery-pill {
                 background-color: rgba(255, 255, 255, 0.12);
-                border-radius: 14px;
-                padding: 4px 10px;
+                border-radius: 12px;
+                padding: 3px 8px;
             }
             .qs-battery-label {
                 color: #ffffff;
                 font-weight: bold;
-                font-size: 12px;
+                font-size: 11px;
                 margin-left: 4px;
             }
             .qs-action-btn {
                 background-color: rgba(255, 255, 255, 0.12);
                 border-radius: 9999px;
-                min-width: 30px;
-                min-height: 30px;
+                min-width: 28px;
+                min-height: 28px;
                 padding: 0;
                 margin-left: 4px;
                 color: #ffffff;
             }
             .qs-slider-row {
-                margin-bottom: 8px;
+                margin-bottom: 6px;
             }
             .qs-slider-icon {
                 color: rgba(255, 255, 255, 0.9);
-                margin-right: 8px;
+                margin-right: 6px;
             }
             .qs-slider-scale {
-                min-height: 20px;
+                min-height: 18px;
             }
             .qs-slider-scale trough {
                 background-color: rgba(255, 255, 255, 0.15);
-                border-radius: 8px;
-                min-height: 5px;
+                border-radius: 6px;
+                min-height: 4px;
             }
             .qs-slider-scale highlight {
                 background-color: #3584e4;
-                border-radius: 8px;
+                border-radius: 6px;
             }
             .qs-slider-scale slider {
                 background-color: #ffffff;
                 border-radius: 50%;
-                min-width: 12px;
-                min-height: 12px;
-                margin: -3.5px;
+                min-width: 10px;
+                min-height: 10px;
+                margin: -3px;
             }
             .qs-arrow-btn {
                 background-color: rgba(255, 255, 255, 0.12);
                 border-radius: 9999px;
-                min-width: 24px;
-                min-height: 24px;
+                min-width: 22px;
+                min-height: 22px;
                 padding: 0;
                 margin-left: 6px;
                 color: #ffffff;
+            }
+            .qs-tile-btn {
+                padding: 0;
+                border-radius: 14px;
+                background: transparent;
+                border: none;
+                box-shadow: none;
+            }
+            .qs-tile-btn:hover {
+                background: transparent;
             }
             .qs-tile-active {
                 background-color: #3584e4;
                 color: #ffffff;
-                border-radius: 18px;
-                padding: 8px 12px;
-                min-height: 40px;
+                border-radius: 14px;
+                padding: 4px 10px;
+                min-height: 34px;
             }
             .qs-tile-inactive {
                 background-color: rgba(255, 255, 255, 0.12);
                 color: #ffffff;
-                border-radius: 18px;
-                padding: 8px 12px;
-                min-height: 40px;
+                border-radius: 14px;
+                padding: 4px 10px;
+                min-height: 34px;
+            }
+            .qs-tile-static-active {
+                background-color: #3584e4;
+                color: #ffffff;
+                border-radius: 14px;
+                padding: 4px 10px;
+                min-height: 34px;
+                cursor: default;
+            }
+            .qs-tile-static-inactive {
+                background-color: rgba(255, 255, 255, 0.12);
+                color: #ffffff;
+                border-radius: 14px;
+                padding: 4px 10px;
+                min-height: 34px;
+                cursor: default;
+            }
+            .qs-tile-hidden {
+                background-color: rgba(255, 255, 255, 0.05);
+                color: rgba(255, 255, 255, 0.6);
+                border: 1px dashed rgba(255, 255, 255, 0.18);
+                border-radius: 14px;
+                padding: 4px 10px;
+                min-height: 34px;
+            }
+            .qs-tile-add {
+                background-color: rgba(255, 255, 255, 0.08);
+                border: 1.5px dashed rgba(255, 255, 255, 0.25);
+                color: #ffffff;
+                border-radius: 14px;
+                padding: 4px 10px;
+                min-height: 34px;
             }
             .qs-tile-title {
                 font-weight: bold;
-                font-size: 12px;
+                font-size: 11px;
                 color: #ffffff;
             }
             .qs-tile-subtitle {
-                font-size: 10px;
-                color: rgba(255, 255, 255, 0.8);
+                font-size: 9.5px;
+                color: rgba(255, 255, 255, 0.75);
             }
             .qs-tile-icon {
                 color: #ffffff;
-                margin-right: 8px;
+                margin-right: 6px;
+            }
+            .qs-tile-arrow-box {
+                background-color: rgba(255, 255, 255, 0.18);
+                border-radius: 9999px;
+                min-width: 20px;
+                min-height: 20px;
+                margin-left: 4px;
             }
             .qs-tile-arrow {
-                color: rgba(255, 255, 255, 0.7);
-                margin-left: 6px;
-            }
-
-            /* Tile Selection Cards */
-            .qs-card-btn {
-                padding: 0;
-                border-radius: 16px;
-                background: transparent;
-                box-shadow: none;
-            }
-            .qs-card-btn:hover {
-                background: transparent;
-            }
-            .qs-tile-card-selected {
-                background-color: rgba(53, 132, 228, 0.12);
-                border: 2px solid #3584e4;
-                border-radius: 16px;
-                padding: 10px 14px;
-                min-height: 52px;
-            }
-            .qs-tile-card-unselected {
-                background-color: rgba(255, 255, 255, 0.04);
-                border: 2px solid rgba(255, 255, 255, 0.1);
-                border-radius: 16px;
-                padding: 10px 14px;
-                min-height: 52px;
-                opacity: 0.6;
-            }
-            .qs-tile-card-title {
-                font-weight: bold;
-                font-size: 13px;
                 color: #ffffff;
             }
-            .qs-tile-card-sub {
-                font-size: 11px;
-                margin-top: 2px;
+            .qs-separator {
+                background-color: rgba(255, 255, 255, 0.15);
+                min-height: 1px;
+                margin: 10px 0 6px 0;
             }
-            .qs-card-status-active {
-                color: #3584e4;
+            .qs-section-label {
+                color: rgba(255, 255, 255, 0.5);
                 font-weight: bold;
+                font-size: 10.5px;
+                letter-spacing: 1px;
+                margin-bottom: 6px;
             }
-            .qs-card-status-hidden {
+            .qs-empty-hidden {
                 color: rgba(255, 255, 255, 0.4);
+                font-size: 11px;
+                font-style: italic;
+                margin-bottom: 4px;
             }
         `;
 
@@ -174,10 +198,10 @@ export default class QForgePreferences extends ExtensionPreferences {
             iconName: 'preferences-system-symbolic',
         });
 
-        // 1. Compact Live Preview Group
+        // 1. Integrated Quick Settings Layout & Edit Mode Group
         const previewGroup = new Adw.PreferencesGroup({
-            title: _('Quick Settings Preview'),
-            description: _('Real-time compact preview of your Quick Settings menu.'),
+            title: _('Quick Settings Layout & Edit Mode'),
+            description: _('Interactive Quick Settings view. Click hideable tiles to move them between Displayed and Hidden sections.'),
         });
 
         const previewWrapper = new Gtk.Box({
@@ -188,26 +212,29 @@ export default class QForgePreferences extends ExtensionPreferences {
         previewGroup.add(previewWrapper);
         mainPage.add(previewGroup);
 
-        // 2. Interactive Tile Cards Section
-        const cardsGroup = new Adw.PreferencesGroup({
-            title: _('Quick Settings Tiles Manager'),
-            description: _('Click any tile card to toggle whether it appears in your Quick Settings menu.'),
-        });
-
-        const cardsContainer = new Gtk.Box({
-            orientation: Gtk.Orientation.VERTICAL,
-        });
-        cardsGroup.add(cardsContainer);
-        mainPage.add(cardsGroup);
-
         const getHiddenDefaults = () => settings.get_strv('hidden-defaults') || [];
         const getCustomLaunchers = () => {
             try {
-                return JSON.parse(settings.get_string('custom-launchers') || '[]');
+                const list = JSON.parse(settings.get_string('custom-launchers') || '[]');
+                return list.map((item, index) => {
+                    const slug = (item.title || 'launcher').toLowerCase().replace(/[^a-z0-9]/g, '_');
+                    return {
+                        ...item,
+                        id: item.id || `custom_${slug}_${index}`
+                    };
+                });
             } catch (e) {
                 return [];
             }
         };
+
+        const defaultHideableItems = [
+            { id: 'nightLight', title: _('Night Light'), icon: 'night-light-symbolic' },
+            { id: 'keyboard', title: _('Keyboard'), icon: 'keyboard-brightness-symbolic' },
+            { id: 'darkMode', title: _('Dark Style'), icon: 'dark-mode-symbolic' },
+            { id: 'dnd', title: _('Do Not Disturb'), icon: 'notifications-disabled-symbolic' },
+            { id: 'backgroundApps', title: _('Background Apps'), icon: 'background-app-symbolic' },
+        ];
 
         const renderPreview = () => {
             // Remove previous preview child
@@ -266,7 +293,7 @@ export default class QForgePreferences extends ExtensionPreferences {
 
             panel.append(topRow);
 
-            // Volume Slider
+            // Volume Slider Row
             const volRow = new Gtk.Box({
                 orientation: Gtk.Orientation.HORIZONTAL,
                 valign: Gtk.Align.CENTER,
@@ -287,7 +314,7 @@ export default class QForgePreferences extends ExtensionPreferences {
             volRow.append(volArrow);
             panel.append(volRow);
 
-            // Brightness Slider
+            // Brightness Slider Row
             const brightRow = new Gtk.Box({
                 orientation: Gtk.Orientation.HORIZONTAL,
                 valign: Gtk.Align.CENTER,
@@ -303,59 +330,85 @@ export default class QForgePreferences extends ExtensionPreferences {
             brightRow.append(brightScale);
             panel.append(brightRow);
 
-            // 2-Column Tile Grid
-            const grid = new Gtk.Grid({
+            const hiddenList = getHiddenDefaults();
+            const launchers = getCustomLaunchers();
+
+            // DISPLAYED TILES
+            const displayedTiles = [];
+            displayedTiles.push({ title: 'Wi-Fi', subtitle: 'BSNLtelnet(99...)', icon: 'network-wireless-signal-excellent-symbolic', active: true, arrow: true });
+            displayedTiles.push({ title: 'Tether', subtitle: 'vivo Y56 5G', icon: 'network-cellular-disabled-symbolic', active: false, arrow: true });
+            displayedTiles.push({ title: 'Bluetooth', subtitle: '', icon: 'bluetooth-active-symbolic', active: true, arrow: true });
+            displayedTiles.push({ title: 'Airplane Mode', subtitle: '', icon: 'airplane-mode-symbolic', active: false, arrow: false });
+
+            defaultHideableItems.forEach(item => {
+                if (!hiddenList.includes(item.id)) {
+                    displayedTiles.push({
+                        id: item.id,
+                        title: item.title,
+                        subtitle: '',
+                        icon: item.icon,
+                        active: false,
+                        arrow: false,
+                        isHideable: true
+                    });
+                }
+            });
+
+            const hiddenLauncherItems = [];
+
+            launchers.forEach(item => {
+                if (!hiddenList.includes(item.id)) {
+                    displayedTiles.push({
+                        id: item.id,
+                        title: item.title || _('Custom Launcher'),
+                        subtitle: '',
+                        icon: item.iconName || 'utilities-terminal-symbolic',
+                        active: false,
+                        arrow: false,
+                        isHideable: true
+                    });
+                } else {
+                    hiddenLauncherItems.push({
+                        id: item.id,
+                        title: item.title || _('Custom Launcher'),
+                        icon: item.iconName || 'utilities-terminal-symbolic'
+                    });
+                }
+            });
+
+            // Add "+ Add Button" to DISPLAYED area
+            displayedTiles.push({
+                isAddBtn: true,
+                title: _('+ Add Button'),
+                subtitle: '',
+                icon: 'list-add-symbolic',
+                active: false,
+                arrow: false
+            });
+
+            const displayedGrid = new Gtk.Grid({
                 column_spacing: 8,
-                row_spacing: 8,
+                row_spacing: 6,
                 column_homogeneous: true
             });
 
-            const hidden = getHiddenDefaults();
-            const launchers = getCustomLaunchers();
-
-            const candidateTiles = [];
-
-            // Standard GNOME Tiles
-            candidateTiles.push({ title: 'Wi-Fi', subtitle: 'BSNLtelnet(99...)', icon: 'network-wireless-signal-excellent-symbolic', active: true, arrow: true });
-            candidateTiles.push({ title: 'Tether', subtitle: 'vivo Y56 5G', icon: 'network-cellular-disabled-symbolic', active: false, arrow: true });
-            candidateTiles.push({ title: 'Bluetooth', subtitle: '', icon: 'bluetooth-active-symbolic', active: true, arrow: true });
-            candidateTiles.push({ title: 'Airplane Mode', subtitle: '', icon: 'airplane-mode-symbolic', active: false, arrow: false });
-
-            if (!hidden.includes('nightLight')) {
-                candidateTiles.push({ title: 'Night Light', subtitle: '', icon: 'night-light-symbolic', active: false, arrow: false });
-            }
-            if (!hidden.includes('keyboard')) {
-                candidateTiles.push({ title: 'Keyboard', subtitle: '', icon: 'keyboard-brightness-symbolic', active: false, arrow: false });
-            }
-            if (!hidden.includes('darkMode')) {
-                candidateTiles.push({ title: 'Dark Style', subtitle: '', icon: 'dark-mode-symbolic', active: true, arrow: false });
-            }
-            if (!hidden.includes('dnd')) {
-                candidateTiles.push({ title: 'Do Not Disturb', subtitle: '', icon: 'notifications-disabled-symbolic', active: false, arrow: false });
-            }
-            if (!hidden.includes('backgroundApps')) {
-                candidateTiles.push({ title: 'Background Apps', subtitle: '', icon: 'background-app-symbolic', active: false, arrow: false });
-            }
-
-            // Custom Launchers
-            launchers.forEach(item => {
-                candidateTiles.push({
-                    title: item.title || _('Custom Launcher'),
-                    subtitle: '',
-                    icon: item.iconName || 'utilities-terminal-symbolic',
-                    active: false,
-                    arrow: false
-                });
-            });
-
-            candidateTiles.forEach((tile, index) => {
+            displayedTiles.forEach((tile, index) => {
                 const col = index % 2;
                 const row = Math.floor(index / 2);
+
+                const isInteractive = tile.isHideable || tile.isAddBtn;
+
+                let containerClass = tile.active ? 'qs-tile-active' : 'qs-tile-inactive';
+                if (tile.isAddBtn) {
+                    containerClass = 'qs-tile-add';
+                } else if (!isInteractive) {
+                    containerClass = tile.active ? 'qs-tile-static-active' : 'qs-tile-static-inactive';
+                }
 
                 const tileBox = new Gtk.Box({
                     orientation: Gtk.Orientation.HORIZONTAL,
                     valign: Gtk.Align.CENTER,
-                    cssClasses: [tile.active ? 'qs-tile-active' : 'qs-tile-inactive']
+                    cssClasses: [containerClass]
                 });
 
                 const icon = Gtk.Image.new_from_icon_name(tile.icon);
@@ -389,112 +442,145 @@ export default class QForgePreferences extends ExtensionPreferences {
                 tileBox.append(textVBox);
 
                 if (tile.arrow) {
+                    const arrowBox = new Gtk.Box({
+                        orientation: Gtk.Orientation.HORIZONTAL,
+                        valign: Gtk.Align.CENTER,
+                        halign: Gtk.Align.CENTER,
+                        cssClasses: ['qs-tile-arrow-box']
+                    });
                     const arrowIcon = Gtk.Image.new_from_icon_name('go-next-symbolic');
                     arrowIcon.add_css_class('qs-tile-arrow');
-                    tileBox.append(arrowIcon);
+                    arrowBox.append(arrowIcon);
+                    tileBox.append(arrowBox);
                 }
 
-                grid.attach(tileBox, col, row, 1, 1);
+                if (isInteractive) {
+                    const tileBtn = new Gtk.Button({
+                        cssClasses: ['qs-tile-btn']
+                    });
+                    tileBtn.set_child(tileBox);
+
+                    if (tile.isHideable) {
+                        tileBtn.set_tooltip_text(_('Click to hide tile'));
+                        tileBtn.connect('clicked', () => {
+                            let current = getHiddenDefaults();
+                            if (!current.includes(tile.id)) {
+                                current.push(tile.id);
+                            }
+                            settings.set_strv('hidden-defaults', current);
+                            renderPreview();
+                        });
+                    } else if (tile.isAddBtn) {
+                        tileBtn.set_tooltip_text(_('Click to add new launcher'));
+                        tileBtn.connect('clicked', () => {
+                            const list = getCustomLaunchers();
+                            list.push({
+                                id: `custom_launcher_${Date.now()}_${list.length}`,
+                                title: _('New Button'),
+                                iconName: 'utilities-terminal-symbolic',
+                                command: 'gnome-terminal'
+                            });
+                            saveLaunchers(list);
+                            renderLaunchers();
+                        });
+                    }
+                    displayedGrid.attach(tileBtn, col, row, 1, 1);
+                } else {
+                    // Non-interactive tile (Wi-Fi, Tether, Bluetooth, Airplane Mode)
+                    displayedGrid.attach(tileBox, col, row, 1, 1);
+                }
             });
 
-            panel.append(grid);
+            panel.append(displayedGrid);
+
+            // SEPARATOR
+            const separator = new Gtk.Box({
+                cssClasses: ['qs-separator']
+            });
+            panel.append(separator);
+
+            // HIDDEN SECTION
+            const hiddenHeader = new Gtk.Label({
+                label: _('HIDDEN'),
+                halign: Gtk.Align.START,
+                xalign: 0,
+                cssClasses: ['qs-section-label']
+            });
+            panel.append(hiddenHeader);
+
+            const hiddenTiles = [
+                ...defaultHideableItems.filter(item => hiddenList.includes(item.id)),
+                ...hiddenLauncherItems
+            ];
+
+            if (hiddenTiles.length > 0) {
+                const hiddenGrid = new Gtk.Grid({
+                    column_spacing: 8,
+                    row_spacing: 6,
+                    column_homogeneous: true
+                });
+
+                hiddenTiles.forEach((item, index) => {
+                    const col = index % 2;
+                    const row = Math.floor(index / 2);
+
+                    const tileBtn = new Gtk.Button({
+                        cssClasses: ['qs-tile-btn']
+                    });
+
+                    const tileBox = new Gtk.Box({
+                        orientation: Gtk.Orientation.HORIZONTAL,
+                        valign: Gtk.Align.CENTER,
+                        cssClasses: ['qs-tile-hidden']
+                    });
+
+                    const icon = Gtk.Image.new_from_icon_name(item.icon);
+                    icon.add_css_class('qs-tile-icon');
+                    tileBox.append(icon);
+
+                    const textVBox = new Gtk.Box({
+                        orientation: Gtk.Orientation.VERTICAL,
+                        valign: Gtk.Align.CENTER,
+                        hexpand: true
+                    });
+
+                    const titleLabel = new Gtk.Label({
+                        label: item.title,
+                        halign: Gtk.Align.START,
+                        xalign: 0,
+                        cssClasses: ['qs-tile-title']
+                    });
+                    textVBox.append(titleLabel);
+
+                    tileBox.append(textVBox);
+                    tileBtn.set_child(tileBox);
+
+                    tileBtn.set_tooltip_text(_('Click to show tile'));
+                    tileBtn.connect('clicked', () => {
+                        let current = getHiddenDefaults();
+                        current = current.filter(id => id !== item.id);
+                        settings.set_strv('hidden-defaults', current);
+                        renderPreview();
+                    });
+
+                    hiddenGrid.attach(tileBtn, col, row, 1, 1);
+                });
+
+                panel.append(hiddenGrid);
+            } else {
+                const emptyLabel = new Gtk.Label({
+                    label: _('No hidden tiles'),
+                    halign: Gtk.Align.START,
+                    xalign: 0,
+                    cssClasses: ['qs-empty-hidden']
+                });
+                panel.append(emptyLabel);
+            }
+
             previewWrapper.append(panel);
         };
 
-        const renderTileCards = () => {
-            let child = cardsContainer.get_first_child();
-            while (child) {
-                const next = child.get_next_sibling();
-                cardsContainer.remove(child);
-                child = next;
-            }
-
-            const grid = new Gtk.Grid({
-                column_spacing: 10,
-                row_spacing: 10,
-                column_homogeneous: true
-            });
-
-            const defaultItems = [
-                { id: 'nightLight', label: _('Night Light'), icon: 'night-light-symbolic' },
-                { id: 'keyboard', label: _('Keyboard Backlight'), icon: 'keyboard-brightness-symbolic' },
-                { id: 'darkMode', label: _('Dark Style'), icon: 'dark-mode-symbolic' },
-                { id: 'dnd', label: _('Do Not Disturb'), icon: 'notifications-disabled-symbolic' },
-                { id: 'backgroundApps', label: _('Background Apps'), icon: 'background-app-symbolic' },
-            ];
-
-            const hiddenList = getHiddenDefaults();
-
-            defaultItems.forEach((item, index) => {
-                const col = index % 2;
-                const row = Math.floor(index / 2);
-                const isSelected = !hiddenList.includes(item.id);
-
-                const cardBtn = new Gtk.Button({
-                    cssClasses: ['qs-card-btn']
-                });
-
-                const innerBox = new Gtk.Box({
-                    orientation: Gtk.Orientation.HORIZONTAL,
-                    valign: Gtk.Align.CENTER,
-                    cssClasses: [isSelected ? 'qs-tile-card-selected' : 'qs-tile-card-unselected']
-                });
-
-                const icon = Gtk.Image.new_from_icon_name(item.icon);
-                icon.set_pixel_size(20);
-                icon.set_margin_end(10);
-                innerBox.append(icon);
-
-                const textVBox = new Gtk.Box({
-                    orientation: Gtk.Orientation.VERTICAL,
-                    valign: Gtk.Align.CENTER,
-                    hexpand: true
-                });
-
-                const titleLabel = new Gtk.Label({
-                    label: item.label,
-                    halign: Gtk.Align.START,
-                    xalign: 0,
-                    cssClasses: ['qs-tile-card-title']
-                });
-                textVBox.append(titleLabel);
-
-                const statusLabel = new Gtk.Label({
-                    label: isSelected ? _('Selected (Appears in Menu)') : _('Hidden'),
-                    halign: Gtk.Align.START,
-                    xalign: 0,
-                    cssClasses: ['qs-tile-card-sub', isSelected ? 'qs-card-status-active' : 'qs-card-status-hidden']
-                });
-                textVBox.append(statusLabel);
-
-                innerBox.append(textVBox);
-
-                const checkIcon = Gtk.Image.new_from_icon_name(isSelected ? 'object-select-symbolic' : 'action-unavailable-symbolic');
-                checkIcon.set_pixel_size(16);
-                innerBox.append(checkIcon);
-
-                cardBtn.set_child(innerBox);
-
-                cardBtn.connect('clicked', () => {
-                    let current = getHiddenDefaults();
-                    if (isSelected) {
-                        if (!current.includes(item.id)) current.push(item.id);
-                    } else {
-                        current = current.filter(id => id !== item.id);
-                    }
-                    settings.set_strv('hidden-defaults', current);
-                    renderPreview();
-                    renderTileCards();
-                });
-
-                grid.attach(cardBtn, col, row, 1, 1);
-            });
-
-            cardsContainer.append(grid);
-        };
-
         renderPreview();
-        renderTileCards();
 
         // 3. Custom Command Launchers Management Group
         const launchersGroup = new Adw.PreferencesGroup({
@@ -539,15 +625,74 @@ export default class QForgePreferences extends ExtensionPreferences {
                     title: _('Icon Name (Symbolic)'),
                     text: item.iconName || '',
                 });
+                const iconPreview = Gtk.Image.new_from_icon_name(item.iconName || 'utilities-terminal-symbolic');
+                iconPreview.set_pixel_size(20);
+                iconRow.add_prefix(iconPreview);
+
                 iconRow.connect('changed', (entry) => {
                     const list = getCustomLaunchers();
                     if (list[index]) {
                         list[index].iconName = entry.text;
                         expanderRow.iconName = entry.text || 'utilities-terminal-symbolic';
+                        try {
+                            iconPreview.iconName = entry.text || 'utilities-terminal-symbolic';
+                        } catch (e) {}
                         saveLaunchers(list);
                     }
                 });
                 expanderRow.add_row(iconRow);
+
+                // Quick Icon Suggestions Row
+                const suggestionsRow = new Adw.ActionRow({
+                    title: _('Quick Icon Suggestions'),
+                    subtitle: _('Click any icon below to select it'),
+                });
+
+                const suggestionsBox = new Gtk.Box({
+                    orientation: Gtk.Orientation.HORIZONTAL,
+                    spacing: 4,
+                    valign: Gtk.Align.CENTER,
+                });
+
+                const presetIcons = [
+                    { icon: 'utilities-terminal-symbolic', name: _('Terminal') },
+                    { icon: 'web-browser-symbolic', name: _('Browser') },
+                    { icon: 'folder-symbolic', name: _('Files') },
+                    { icon: 'preferences-system-symbolic', name: _('Settings') },
+                    { icon: 'emblem-favorite-symbolic', name: _('Favorite') },
+                    { icon: 'system-search-symbolic', name: _('Search') },
+                    { icon: 'media-playback-start-symbolic', name: _('Media') },
+                    { icon: 'utilities-system-monitor-symbolic', name: _('Monitor') },
+                    { icon: 'application-x-executable-symbolic', name: _('App') },
+                    { icon: 'system-lock-screen-symbolic', name: _('Lock') },
+                ];
+
+                presetIcons.forEach(preset => {
+                    const btn = new Gtk.Button({
+                        tooltipText: preset.name,
+                        cssClasses: ['flat']
+                    });
+                    const img = Gtk.Image.new_from_icon_name(preset.icon);
+                    img.set_pixel_size(18);
+                    btn.set_child(img);
+
+                    btn.connect('clicked', () => {
+                        iconRow.text = preset.icon;
+                        const list = getCustomLaunchers();
+                        if (list[index]) {
+                            list[index].iconName = preset.icon;
+                            expanderRow.iconName = preset.icon;
+                            try {
+                                iconPreview.iconName = preset.icon;
+                            } catch (e) {}
+                            saveLaunchers(list);
+                        }
+                    });
+                    suggestionsBox.append(btn);
+                });
+
+                suggestionsRow.add_suffix(suggestionsBox);
+                expanderRow.add_row(suggestionsRow);
 
                 const commandRow = new Adw.EntryRow({
                     title: _('Command'),
@@ -562,6 +707,50 @@ export default class QForgePreferences extends ExtensionPreferences {
                     }
                 });
                 expanderRow.add_row(commandRow);
+
+                // Quick Command Suggestions Row
+                const cmdSuggestionsRow = new Adw.ActionRow({
+                    title: _('Quick Command Suggestions'),
+                    subtitle: _('Click a preset to insert command, then customize as needed'),
+                });
+
+                const cmdSuggestionsBox = new Gtk.Box({
+                    orientation: Gtk.Orientation.HORIZONTAL,
+                    spacing: 4,
+                    valign: Gtk.Align.CENTER,
+                });
+
+                const presetCommands = [
+                    { label: _('Terminal'), cmd: 'gnome-terminal' },
+                    { label: _('Files'), cmd: 'nautilus ~' },
+                    { label: _('Browser'), cmd: 'xdg-open https://google.com' },
+                    { label: _('Monitor'), cmd: 'gnome-system-monitor' },
+                    { label: _('Settings'), cmd: 'gnome-control-center' },
+                    { label: _('Screenshot'), cmd: 'gnome-screenshot -i' },
+                    { label: _('Calculator'), cmd: 'gnome-calculator' },
+                ];
+
+                presetCommands.forEach(preset => {
+                    const btn = new Gtk.Button({
+                        label: preset.label,
+                        tooltipText: preset.cmd,
+                        cssClasses: ['flat']
+                    });
+
+                    btn.connect('clicked', () => {
+                        commandRow.text = preset.cmd;
+                        const list = getCustomLaunchers();
+                        if (list[index]) {
+                            list[index].command = preset.cmd;
+                            expanderRow.subtitle = preset.cmd;
+                            saveLaunchers(list);
+                        }
+                    });
+                    cmdSuggestionsBox.append(btn);
+                });
+
+                cmdSuggestionsRow.add_suffix(cmdSuggestionsBox);
+                expanderRow.add_row(cmdSuggestionsRow);
 
                 const delBtn = new Gtk.Button({
                     iconName: 'user-trash-symbolic',
